@@ -5,23 +5,31 @@
   <title>Математический тренажёр</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Comic Sans MS", sans-serif;
       text-align: center;
       margin-top: 30px;
-      background: #f5f5f5;
+      background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
+      overflow: hidden;
     }
     h1 {
       color: #333;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      animation: pulse 2s infinite;
     }
     .task {
-      font-size: 32px;
+      font-size: 40px;
       margin: 20px 0;
+      font-weight: bold;
+      color: #1565c0;
+      transition: transform 0.3s ease;
     }
     input {
       font-size: 24px;
-      padding: 5px;
-      width: 120px;
+      padding: 8px;
+      width: 140px;
       text-align: center;
+      border-radius: 8px;
+      border: 2px solid #2196f3;
     }
     button, select {
       font-size: 20px;
@@ -30,21 +38,24 @@
       cursor: pointer;
       border-radius: 10px;
       border: none;
+      transition: transform 0.2s, background 0.3s;
     }
     button {
-      background: #4CAF50;
+      background: linear-gradient(45deg, #4CAF50, #81C784);
       color: white;
     }
     button:hover {
-      background: #45a049;
+      background: linear-gradient(45deg, #388E3C, #66BB6A);
+      transform: scale(1.1);
     }
     select {
       background: #2196F3;
       color: white;
     }
     .result {
-      font-size: 24px;
+      font-size: 28px;
       margin-top: 20px;
+      min-height: 40px;
     }
     .scoreboard {
       font-size: 20px;
@@ -53,21 +64,52 @@
       background: #fff;
       display: inline-block;
       border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     .scoreboard span {
       margin: 0 15px;
     }
     .timer {
-      font-size: 24px;
+      font-size: 26px;
       margin-top: 20px;
       color: #d32f2f;
+      font-weight: bold;
+    }
+    /* анимация для правильного ответа */
+    .correct {
+      animation: bounce 0.6s;
+    }
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    /* анимация для неправильного ответа */
+    .wrong {
+      animation: shake 0.5s;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    /* Конфетти */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      top: -10px;
+      animation: fall 3s linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-  <h1>Математический тренажёр</h1>
+  <h1>🎲 Математический тренажёр 🎲</h1>
 
   <div>
     <label for="level">Уровень:</label>
@@ -88,10 +130,12 @@
 
   <div class="task" id="task">Нажми "Старт"</div>
 
-  <input type="number" id="answer" placeholder="Ответ" disabled>
+  <!-- поле ввода с Enter -->
+  <input type="number" id="answer" placeholder="Ответ" disabled
+         onkeydown="if(event.key==='Enter'){checkAnswer(); newTask();}">
   <br>
   <button id="startBtn" onclick="startGame()">▶️ Старт</button>
-  <button onclick="checkAnswer()" id="checkBtn" disabled>Проверить</button>
+  <button onclick="checkAnswer(); newTask();" id="checkBtn" disabled>Проверить</button>
   <button onclick="newTask()" id="nextBtn" disabled>Новая задача</button>
 
   <div class="result" id="result"></div>
@@ -181,6 +225,7 @@
       }
 
       document.getElementById("task").textContent = `${a} ${sign} ${b} = ?`;
+      document.getElementById("task").classList.remove("correct", "wrong");
       document.getElementById("answer").value = "";
       document.getElementById("result").textContent = "";
     }
@@ -191,16 +236,32 @@
       let userAnswer = parseInt(document.getElementById("answer").value);
 
       if (userAnswer === correctAnswer) {
-        document.getElementById("result").textContent = "✅ Молодец! Правильно!";
+        document.getElementById("result").textContent = "🎉 Молодец! Правильно!";
         document.getElementById("result").style.color = "green";
         correctCount++;
         document.getElementById("correctCount").textContent = correctCount;
+        document.getElementById("task").classList.add("correct");
+        launchConfetti();
       } else {
         document.getElementById("result").textContent =
           `❌ Неправильно! Правильный ответ: ${correctAnswer}`;
         document.getElementById("result").style.color = "red";
         wrongCount++;
         document.getElementById("wrongCount").textContent = wrongCount;
+        document.getElementById("task").classList.add("wrong");
+      }
+    }
+
+    function launchConfetti() {
+      for (let i = 0; i < 20; i++) {
+        let confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = Math.random() * window.innerWidth + "px";
+        confetti.style.backgroundColor =
+          ["#ff0", "#f00", "#0f0", "#00f", "#ff69b4"][Math.floor(Math.random()*5)];
+        document.body.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 3000);
       }
     }
   </script>
