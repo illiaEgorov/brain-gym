@@ -7,7 +7,7 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 30px;
       background: #f5f5f5;
     }
     h1 {
@@ -20,68 +20,165 @@
     input {
       font-size: 24px;
       padding: 5px;
-      width: 100px;
+      width: 120px;
       text-align: center;
     }
-    button {
+    button, select {
       font-size: 20px;
       margin: 10px;
       padding: 10px 20px;
       cursor: pointer;
       border-radius: 10px;
       border: none;
+    }
+    button {
       background: #4CAF50;
       color: white;
     }
     button:hover {
       background: #45a049;
     }
+    select {
+      background: #2196F3;
+      color: white;
+    }
     .result {
       font-size: 24px;
       margin-top: 20px;
     }
-    .score {
-      font-size: 22px;
-      margin-top: 15px;
-      color: #333;
+    .scoreboard {
+      font-size: 20px;
+      margin-top: 30px;
+      padding: 10px;
+      background: #fff;
+      display: inline-block;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .scoreboard span {
+      margin: 0 15px;
     }
     .timer {
       font-size: 24px;
       margin-top: 20px;
-      color: darkblue;
+      color: #d32f2f;
     }
   </style>
 </head>
 <body>
 
   <h1>Математический тренажёр</h1>
-  <div class="task" id="task">Задача появится тут</div>
 
-  <input type="number" id="answer" placeholder="Ответ">
+  <div>
+    <label for="level">Уровень:</label>
+    <select id="level">
+      <option value="10">Лёгкий (до 10)</option>
+      <option value="20" selected>Средний (до 20)</option>
+      <option value="100">Сложный (до 100)</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="operations">Операции:</label>
+    <select id="operations">
+      <option value="basic" selected>Сложение и вычитание</option>
+      <option value="all">Все (+ − × ÷)</option>
+    </select>
+  </div>
+
+  <div class="task" id="task">Нажми "Старт"</div>
+
+  <input type="number" id="answer" placeholder="Ответ" disabled>
   <br>
-  <button onclick="checkAnswer()">Проверить</button>
-  <button onclick="newTask()">Новая задача</button>
-  <button onclick="startGame()">Начать заново</button>
+  <button id="startBtn" onclick="startGame()">▶️ Старт</button>
+  <button onclick="checkAnswer()" id="checkBtn" disabled>Проверить</button>
+  <button onclick="newTask()" id="nextBtn" disabled>Новая задача</button>
 
   <div class="result" id="result"></div>
-  <div class="score" id="score">Очки: 0 | Ошибки: 0</div>
-  <div class="timer" id="timer">⏱ Время: 60</div>
+
+  <div class="scoreboard">
+    <span>✅ Правильно: <b id="correctCount">0</b></span>
+    <span>❌ Ошибки: <b id="wrongCount">0</b></span>
+  </div>
+
+  <div class="timer" id="timer">⏳ 60</div>
 
   <script>
     let correctAnswer;
-    let points = 0;
-    let errors = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
     let timeLeft = 60;
     let timerId;
+    let gameActive = false;
+
+    function startGame() {
+      correctCount = 0;
+      wrongCount = 0;
+      timeLeft = 60;
+      gameActive = true;
+
+      document.getElementById("correctCount").textContent = 0;
+      document.getElementById("wrongCount").textContent = 0;
+      document.getElementById("timer").textContent = "⏳ 60";
+      document.getElementById("result").textContent = "";
+
+      document.getElementById("answer").disabled = false;
+      document.getElementById("checkBtn").disabled = false;
+      document.getElementById("nextBtn").disabled = false;
+      document.getElementById("startBtn").disabled = true;
+
+      newTask();
+
+      timerId = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = "⏳ " + timeLeft;
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timerId);
+      gameActive = false;
+
+      document.getElementById("task").textContent = "⏹ Время вышло!";
+      document.getElementById("answer").disabled = true;
+      document.getElementById("checkBtn").disabled = true;
+      document.getElementById("nextBtn").disabled = true;
+      document.getElementById("startBtn").disabled = false;
+
+      document.getElementById("result").textContent =
+        `Результат: ✅ ${correctCount} правильных, ❌ ${wrongCount} ошибок`;
+      document.getElementById("result").style.color = "#000";
+    }
 
     function newTask() {
-      let a = Math.floor(Math.random() * 20) + 1;
-      let b = Math.floor(Math.random() * 20) + 1;
-      let sign = Math.random() > 0.5 ? '+' : '-';
+      if (!gameActive) return;
 
-      if (sign === '-' && b > a) [a, b] = [b, a];
+      let maxNumber = parseInt(document.getElementById("level").value);
+      let mode = document.getElementById("operations").value;
 
-      correctAnswer = sign === '+' ? a + b : a - b;
+      let a = Math.floor(Math.random() * maxNumber) + 1;
+      let b = Math.floor(Math.random() * maxNumber) + 1;
+
+      let signs = mode === "basic" ? ["+", "-"] : ["+", "-", "×", "÷"];
+      let sign = signs[Math.floor(Math.random() * signs.length)];
+
+      if (sign === '-') {
+        if (b > a) [a, b] = [b, a];
+        correctAnswer = a - b;
+      } else if (sign === '+') {
+        correctAnswer = a + b;
+      } else if (sign === '×') {
+        correctAnswer = a * b;
+      } else if (sign === '÷') {
+        b = Math.floor(Math.random() * (maxNumber - 1)) + 1;
+        correctAnswer = a;
+        a = a * b;
+        sign = "÷";
+      }
 
       document.getElementById("task").textContent = `${a} ${sign} ${b} = ?`;
       document.getElementById("answer").value = "";
@@ -89,57 +186,23 @@
     }
 
     function checkAnswer() {
+      if (!gameActive) return;
+
       let userAnswer = parseInt(document.getElementById("answer").value);
 
-      if (isNaN(userAnswer)) return;
-
       if (userAnswer === correctAnswer) {
-        points++;
         document.getElementById("result").textContent = "✅ Молодец! Правильно!";
         document.getElementById("result").style.color = "green";
+        correctCount++;
+        document.getElementById("correctCount").textContent = correctCount;
       } else {
-        errors++;
-        document.getElementById("result").textContent = `❌ Ошибка! Правильный ответ: ${correctAnswer}`;
+        document.getElementById("result").textContent =
+          `❌ Неправильно! Правильный ответ: ${correctAnswer}`;
         document.getElementById("result").style.color = "red";
+        wrongCount++;
+        document.getElementById("wrongCount").textContent = wrongCount;
       }
-
-      updateScore();
-      newTask();
     }
-
-    function updateScore() {
-      document.getElementById("score").textContent = `Очки: ${points} | Ошибки: ${errors}`;
-    }
-
-    function startTimer() {
-      clearInterval(timerId);
-      timeLeft = 60;
-      document.getElementById("timer").textContent = `⏱ Время: ${timeLeft}`;
-      timerId = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = `⏱ Время: ${timeLeft}`;
-        if (timeLeft <= 0) {
-          clearInterval(timerId);
-          endGame();
-        }
-      }, 1000);
-    }
-
-    function startGame() {
-      points = 0;
-      errors = 0;
-      updateScore();
-      newTask();
-      startTimer();
-    }
-
-    function endGame() {
-      document.getElementById("task").textContent = "⏰ Время вышло!";
-      document.getElementById("result").textContent = `🏆 Итог: Очки ${points}, Ошибки ${errors}`;
-    }
-
-    // при загрузке сразу ставим задачу
-    newTask();
   </script>
 
 </body>
