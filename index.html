@@ -1,74 +1,51 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Математический тренажёр</title>
-
 <style>
-  body {
-    font-family: "Comic Sans MS", sans-serif;
-    text-align: center;
-    margin: 8px;
-    background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
-  }
+  body { font-family: "Comic Sans MS", sans-serif; text-align:center; margin:8px; background:linear-gradient(135deg,#f9f9f9,#e0f7fa); }
+  h1{font-size:24px;margin-bottom:10px;color:#333;}
+  .task{font-size:28px;margin:10px 0;font-weight:bold;color:#1565c0;}
+  button, select{font-size:18px;padding:10px;margin:8px;border-radius:12px;border:none;color:#fff;background:linear-gradient(45deg,#4CAF50,#81C784);width:90%;max-width:300px;}
+  .answer-btn{width:80px;height:80px;border-radius:50%;font-size:22px;font-weight:bold;margin:10px;box-shadow:0 4px 8px rgba(0,0,0,.2);transition:transform .08s}
+  .answer-btn:active{transform:scale(.92)}
+  #answer-buttons{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:10px}
+  .result{font-size:20px;margin-top:10px;min-height:30px}
+  .scoreboard{font-size:16px;padding:10px;background:#fff;display:inline-block;border-radius:10px;margin-top:15px}
+  .timer{font-size:22px;margin-top:10px;color:#d32f2f;font-weight:bold}
+  .confetti{position:absolute;width:10px;height:10px;top:-10px;animation:fall 3s linear forwards}
+  @keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0}}
+</style>
+</head>
+<body>
 
-  h1 {
-    font-size: 24px;
-    margin-bottom: 10px;
-    color: #333;
-  }
+<h1>🎲 Математический тренажёр 🎲</h1>
 
-  .task {
-    font-size: 28px;
-    margin: 10px 0;
-    font-weight: bold;
-    color: #1565c0;
-  }
+<label>Уровень:</label><br>
+<select id="level">
+  <option value="10">Лёгкий (до 10)</option>
+  <option value="20" selected>Средний (до 20)</option>
+  <option value="100">Сложный (до 100)</option>
+</select>
+<br>
+<label>Операции:</label><br>
+<select id="operations">
+  <option value="basic" selected>+ и −</option>
+  <option value="all">Все (+ − × ÷)</option>
+</select>
 
-  /* Общий стиль */
-  button, select {
-    font-size: 18px;
-    padding: 10px;
-    margin: 8px;
-    border-radius: 12px;
-    border: none;
-    color: white;
-    background: linear-gradient(45deg, #4CAF50, #81C784);
-    width: 90%;
-    max-width: 300px;
-  }
+<div class="task" id="task">Нажми "Старт"</div>
 
-  /* Круглые кнопки ответов */
-  .answer-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    font-size: 22px;
-    font-weight: bold;
-    margin: 10px;
-    background: linear-gradient(45deg, #4CAF50, #81C784);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: transform 0.1s ease;
-  }
+<div id="answer-buttons">
+  <button class="answer-btn" id="btn1" disabled></button>
+  <button class="answer-btn" id="btn2" disabled></button>
+  <button class="answer-btn" id="btn3" disabled></button>
+</div>
 
-  .answer-btn:active {
-    transform: scale(0.92);
-  }
+<button id="startBtn">▶️ Старт</button>
 
-  #answer-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-  }
+<div class="result" id="result"></div>
 
-  .result {
-    font-size: 20px;
-    margin-top: 10px;
-    min-height: 30px;
-  }
-
-  .scoreboard {
-    font-size: 16px;
+<di
