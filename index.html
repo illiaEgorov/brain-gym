@@ -2,20 +2,23 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Математический тренажёр</title>
+
 <style>
   body {
     font-family: "Comic Sans MS", sans-serif;
     text-align: center;
-    margin-top: 30px;
+    margin: 10px;
     background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
-    overflow: hidden;
   }
 
   h1 {
     color: #333;
+    margin-bottom: 10px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     animation: pulse 2s infinite;
+    font-size: 28px;
   }
 
   @keyframes pulse {
@@ -24,18 +27,20 @@
   }
 
   .task {
-    font-size: 40px;
-    margin: 20px 0;
+    font-size: 32px;
+    margin: 15px 0;
     font-weight: bold;
     color: #1565c0;
     transition: transform 0.3s ease;
   }
 
-  /* Общий стиль для кнопок и select */
+  /* кнопки */
   button, select, .answer-btn {
     font-size: 20px;
-    margin: 10px;
-    padding: 12px 25px;
+    margin: 8px;
+    padding: 12px;
+    width: 90%;
+    max-width: 300px;
     cursor: pointer;
     border-radius: 12px;
     border: none;
@@ -46,25 +51,29 @@
 
   button:hover, .answer-btn:hover, select:hover {
     background: linear-gradient(45deg, #388E3C, #66BB6A);
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 
   select {
-    appearance: none; /* убираем стандартную стрелку в браузере */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none;
     text-align: center;
   }
 
+  #answer-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   .result {
-    font-size: 28px;
-    margin-top: 20px;
-    min-height: 40px;
+    font-size: 24px;
+    margin-top: 10px;
+    min-height: 35px;
   }
 
   .scoreboard {
-    font-size: 20px;
-    margin-top: 30px;
+    font-size: 18px;
+    margin-top: 20px;
     padding: 10px;
     background: #fff;
     display: inline-block;
@@ -72,17 +81,14 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
   }
 
-  .scoreboard span {
-    margin: 0 15px;
-  }
-
   .timer {
-    font-size: 26px;
-    margin-top: 20px;
+    font-size: 24px;
+    margin-top: 15px;
     color: #d32f2f;
     font-weight: bold;
   }
 
+  /* Анимации */
   .correct { animation: bounce 0.6s; }
   @keyframes bounce {
     0% { transform: scale(1); }
@@ -108,14 +114,23 @@
   @keyframes fall {
     to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
   }
+
+  /* 📱 Адаптация под маленькие экраны */
+  @media (max-width: 480px) {
+    h1 { font-size: 24px; }
+    .task { font-size: 26px; }
+    button, select { font-size: 18px; }
+    .result { font-size: 20px; }
+  }
 </style>
 </head>
+
 <body>
 
   <h1>🎲 Математический тренажёр 🎲</h1>
 
   <div>
-    <label for="level">Уровень:</label>
+    <label for="level">Уровень:</label><br>
     <select id="level">
       <option value="10">Лёгкий (до 10)</option>
       <option value="20" selected>Средний (до 20)</option>
@@ -124,7 +139,7 @@
   </div>
 
   <div>
-    <label for="operations">Операции:</label>
+    <label for="operations">Операции:</label><br>
     <select id="operations">
       <option value="basic" selected>Сложение и вычитание</option>
       <option value="all">Все (+ − × ÷)</option>
@@ -133,152 +148,12 @@
 
   <div class="task" id="task">Нажми "Старт"</div>
 
-  <!-- Кнопки для вариантов ответа -->
   <div id="answer-buttons">
     <button class="answer-btn" id="btn1"></button>
     <button class="answer-btn" id="btn2"></button>
     <button class="answer-btn" id="btn3"></button>
   </div>
 
-  <br>
   <button id="startBtn" onclick="startGame()">▶️ Старт</button>
 
-  <div class="result" id="result"></div>
-
-  <div class="scoreboard">
-    <span>✅ Правильно: <b id="correctCount">0</b></span>
-    <span>❌ Ошибки: <b id="wrongCount">0</b></span>
-  </div>
-
-  <div class="timer" id="timer">⏳ 60</div>
-
-  <script>
-    let correctAnswer;
-    let correctCount = 0;
-    let wrongCount = 0;
-    let timeLeft = 60;
-    let timerId;
-    let gameActive = false;
-
-    const btn1 = document.getElementById("btn1");
-    const btn2 = document.getElementById("btn2");
-    const btn3 = document.getElementById("btn3");
-
-    function startGame() {
-      correctCount = 0;
-      wrongCount = 0;
-      timeLeft = 60;
-      gameActive = true;
-
-      document.getElementById("correctCount").textContent = 0;
-      document.getElementById("wrongCount").textContent = 0;
-      document.getElementById("timer").textContent = "⏳ 60";
-      document.getElementById("result").textContent = "";
-
-      document.getElementById("startBtn").disabled = true;
-      newTask();
-
-      timerId = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = "⏳ " + timeLeft;
-        if (timeLeft <= 0) endGame();
-      }, 1000);
-    }
-
-    function endGame() {
-      clearInterval(timerId);
-      gameActive = false;
-      document.getElementById("task").textContent = "⏹ Время вышло!";
-      document.getElementById("result").textContent =
-        `Результат: ✅ ${correctCount} правильных, ❌ ${wrongCount} ошибок`;
-      document.getElementById("startBtn").disabled = false;
-      btn1.disabled = btn2.disabled = btn3.disabled = true;
-    }
-
-    function newTask() {
-      if (!gameActive) return;
-
-      let maxNumber = parseInt(document.getElementById("level").value);
-      let mode = document.getElementById("operations").value;
-
-      let a = Math.floor(Math.random() * maxNumber) + 1;
-      let b = Math.floor(Math.random() * maxNumber) + 1;
-
-      let signs = mode === "basic" ? ["+", "-"] : ["+", "-", "×", "÷"];
-      let sign = signs[Math.floor(Math.random() * signs.length)];
-
-      if (sign === '-') {
-        if (b > a) [a, b] = [b, a];
-        correctAnswer = a - b;
-      } else if (sign === '+') {
-        correctAnswer = a + b;
-      } else if (sign === '×') {
-        correctAnswer = a * b;
-      } else if (sign === '÷') {
-        b = Math.floor(Math.random() * (maxNumber - 1)) + 1;
-        correctAnswer = a;
-        a = a * b;
-        sign = "÷";
-      }
-
-      document.getElementById("task").textContent = `${a} ${sign} ${b} = ?`;
-      document.getElementById("task").classList.remove("correct", "wrong");
-      document.getElementById("result").textContent = "";
-
-      // Генерация вариантов ответа (разница ±3)
-      let options = new Set();
-      options.add(correctAnswer);
-      while (options.size < 3) {
-        let delta = Math.floor(Math.random() * 7) - 3; // -3..3
-        if (delta !== 0) options.add(correctAnswer + delta);
-      }
-      let arr = Array.from(options);
-      arr.sort(() => Math.random() - 0.5); // перемешиваем
-
-      btn1.textContent = arr[0];
-      btn2.textContent = arr[1];
-      btn3.textContent = arr[2];
-
-      btn1.disabled = btn2.disabled = btn3.disabled = false;
-      btn1.onclick = btn2.onclick = btn3.onclick = () => selectAnswer(event.target);
-    }
-
-    function selectAnswer(button) {
-      let userAnswer = parseInt(button.textContent);
-
-      btn1.disabled = btn2.disabled = btn3.disabled = true;
-
-      if (userAnswer === correctAnswer) {
-        document.getElementById("result").textContent = "🎉 Молодец! Правильно!";
-        document.getElementById("result").style.color = "green";
-        correctCount++;
-        document.getElementById("correctCount").textContent = correctCount;
-        document.getElementById("task").classList.add("correct");
-        launchConfetti();
-      } else {
-        document.getElementById("result").textContent =
-          `❌ Неправильно! Правильный ответ: ${correctAnswer}`;
-        document.getElementById("result").style.color = "red";
-        wrongCount++;
-        document.getElementById("wrongCount").textContent = wrongCount;
-        document.getElementById("task").classList.add("wrong");
-      }
-
-      setTimeout(newTask, 800); // авто переход к следующей задаче
-    }
-
-    function launchConfetti() {
-      for (let i = 0; i < 20; i++) {
-        let confetti = document.createElement("div");
-        confetti.classList.add("confetti");
-        confetti.style.left = Math.random() * window.innerWidth + "px";
-        confetti.style.backgroundColor =
-          ["#ff0", "#f00", "#0f0", "#00f", "#ff69b4"][Math.floor(Math.random()*5)];
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 3000);
-      }
-    }
-  </script>
-
-</body>
-</html>
+  <div class="result" id="result"></div
