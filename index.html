@@ -5,18 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Математический тренажёр</title>
 <style>
-  body { font-family: "Comic Sans MS", sans-serif; text-align:center; margin:8px; background:linear-gradient(135deg,#f9f9f9,#e0f7fa); }
+  body { font-family: sans-serif; text-align:center; margin:8px; background:linear-gradient(135deg,#f9f9f9,#e0f7fa); }
   h1{font-size:24px;margin-bottom:10px;color:#333;}
   .task{font-size:28px;margin:10px 0;font-weight:bold;color:#1565c0;}
   button, select{font-size:18px;padding:10px;margin:8px;border-radius:12px;border:none;color:#fff;background:linear-gradient(45deg,#4CAF50,#81C784);width:90%;max-width:300px;}
-  .answer-btn{width:80px;height:80px;border-radius:50%;font-size:22px;font-weight:bold;margin:10px;box-shadow:0 4px 8px rgba(0,0,0,.2);transition:transform .08s}
+  .answer-btn{width:80px;height:80px;border-radius:50%;font-size:22px;font-weight:bold;margin:10px;
+    box-shadow:0 4px 8px rgba(0,0,0,.2);transition:transform .08s}
   .answer-btn:active{transform:scale(.92)}
   #answer-buttons{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:10px}
   .result{font-size:20px;margin-top:10px;min-height:30px}
   .scoreboard{font-size:16px;padding:10px;background:#fff;display:inline-block;border-radius:10px;margin-top:15px}
   .timer{font-size:22px;margin-top:10px;color:#d32f2f;font-weight:bold}
-  .confetti{position:absolute;width:10px;height:10px;top:-10px;animation:fall 3s linear forwards}
-  @keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0}}
 </style>
 </head>
 <body>
@@ -48,4 +47,118 @@
 
 <div class="result" id="result"></div>
 
-<di
+<div class="scoreboard">
+  <span>✅: <b id="correctCount">0</b></span>
+  <span style="margin-left:12px">❌: <b id="wrongCount">0</b></span>
+</div>
+
+<div class="timer" id="timer">⏳ 60</div>
+
+<script>
+let correctAnswer = 0;
+let correct = 0, wrong = 0;
+let timeLeft = 60;
+let timer;
+let gameActive = false;
+
+const task = document.getElementById("task");
+const result = document.getElementById("result");
+const timerBox = document.getElementById("timer");
+const btns = [
+  document.getElementById("btn1"),
+  document.getElementById("btn2"),
+  document.getElementById("btn3")
+];
+
+function vibrate(p) {
+  if (navigator.vibrate) navigator.vibrate(p);
+}
+
+function startGame() {
+  gameActive = true;
+  correct = 0; wrong = 0; timeLeft = 60;
+  document.getElementById("correctCount").innerText = correct;
+  document.getElementById("wrongCount").innerText = wrong;
+  result.innerText = "";
+  newTask();
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timerBox.innerText = "⏳ " + timeLeft;
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+function endGame() {
+  clearInterval(timer);
+  gameActive = false;
+  task.innerText = "⏹ Время вышло!";
+  result.innerText = `Результат: ${correct} / ${wrong}`;
+  btns.forEach(b => b.disabled = true);
+}
+
+function newTask() {
+  const maxNumber = parseInt(document.getElementById("level").value);
+  const mode = document.getElementById("operations").value;
+
+  let a = Math.floor(Math.random()*maxNumber)+1;
+  let b = Math.floor(Math.random()*maxNumber)+1;
+  let opList = mode === "basic" ? ["+","-"] : ["+","-","×","÷"];
+  let op = opList[Math.floor(Math.random()*opList.length)];
+
+  if (op === "-") { if (b>a) [a,b]=[b,a]; correctAnswer = a-b; }
+  if (op === "+") correctAnswer = a+b;
+  if (op === "×") correctAnswer = a*b;
+  if (op === "÷") {
+    b = Math.floor(Math.random()*maxNumber)+1;
+    correctAnswer = Math.floor(Math.random()*maxNumber)+1;
+    a = b * correctAnswer;
+  }
+
+  task.innerText = `${a} ${op} ${b} = ?`;
+
+  // генерируем 3 варианта
+  const options = new Set([correctAnswer]);
+  while (options.size < 3) {
+    let d = Math.floor(Math.random()*7)-3;
+    if (d !== 0) options.add(correctAnswer + d);
+  }
+
+  const arr = Array.from(options).sort(() => Math.random()-0.5);
+
+  btns.forEach((b, i) => {
+    b.innerText = arr[i];
+    b.disabled = false;
+  });
+}
+
+btns.forEach(b => {
+  b.addEventListener("click", () => {
+    if (!gameActive) return;
+
+    let val = parseInt(b.innerText);
+    btns.forEach(x => x.disabled = true);
+
+    if (val === correctAnswer) {
+      correct++;
+      document.getElementById("correctCount").innerText = correct;
+      result.innerText = "✔️ Правильно!";
+      result.style.color = "green";
+      vibrate(50);
+    } else {
+      wrong++;
+      document.getElementById("wrongCount").innerText = wrong;
+      result.innerText = "❌ Неверно! Правильно: " + correctAnswer;
+      result.style.color = "red";
+      vibrate([100,40,100]);
+    }
+
+    setTimeout(newTask, 600);
+  });
+});
+
+document.getElementById("startBtn").addEventListener("click", startGame);
+</script>
+
+</body>
+</html>
